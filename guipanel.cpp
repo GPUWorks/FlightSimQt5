@@ -212,8 +212,8 @@ void GUIPanel::readRequest()
                     // a una estructura para poder procesar su informacion
                     short int parametros[2];
                     extract_packet_command_param(frame,sizeof(parametros),&parametros);
-                    ui->PitchCompass->setValue((double)(parametros[0]+90));
-                    ui->RollCompass->setValue(parametros[1]+90);
+                    ui->PitchCompass->setValue((double)(90-parametros[0]));
+                    ui->RollCompass->setValue(90-parametros[1]);
                 }
                     break;
 
@@ -344,6 +344,10 @@ void GUIPanel::on_serialPortComboBox_currentIndexChanged(const QString &arg1)
 
 // SLOT asociada a pulsación del botón RUN
 void GUIPanel::on_runButton_clicked(){
+
+    char paquete[MAX_FRAME_SIZE];
+    int size;
+
     if(!connected){
         // Si esta con el icono Start
         startSlave(); // Aquí podriamos haber escrito todo el codigo de 'startSlave' en vez de llamarla.
@@ -351,10 +355,20 @@ void GUIPanel::on_runButton_clicked(){
             ui->brokenGlass->setVisible(false); // Quita la imagen de "cabina rota"
             // Crear una trama con el comando COMANDO_START, para iniciar el funcionamiento de la
             // aplicación --> TO_DO
+
+            //size=create_frame((unsigned char *)paquete, COMANDO_START, NULL, 0, MAX_FRAME_SIZE);
+            // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
+            //if (size>0) serial.write(paquete,size);
+
         }
     }else{ // Si esta con el icono Stop
         // Crear una trama con el comando COMANDO_STOP, para detener el funcionamiento de la
         // aplicación  --> TO_DO
+
+        //size=create_frame((unsigned char *)paquete, COMANDO_STOP, NULL, 0, MAX_FRAME_SIZE);
+        // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
+        //if (size>0) serial.write(paquete,size);
+
         ui->statusLabel->setText(tr("  Detenido: sin conexion USB") );
         activateRunButton();
         ui->serialPortComboBox->setEnabled(true);
