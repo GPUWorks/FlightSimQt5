@@ -90,7 +90,8 @@ typedef enum {
     COMANDO_PING,  // Comando PING
     COMANDO_LEDS,   // Comando de ejemplo --> eliminar en la aplicacion final
     COMANDO_START, // Comando aviso de inicio de aplicacion
-    COMANDO_STOP,  // Comando de aviso de fin de aplicación
+    COMANDO_STOP,
+    COMANDO_EJES// Comando de aviso de fin de aplicación
 // TODO: el alumno deberá añadir mas comandos y sus estructuras de datos correspondientes
 } commandTypes;
 

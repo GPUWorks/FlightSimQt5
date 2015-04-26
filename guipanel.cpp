@@ -206,6 +206,16 @@ void GUIPanel::readRequest()
                     break;
 
                     //Falta por implementar la recepcion de mas tipos de comando
+                case COMANDO_EJES:
+                {
+                    // En otros comandos hay que extraer los parametros de la trama y copiarlos
+                    // a una estructura para poder procesar su informacion
+                    short int parametros[2];
+                    extract_packet_command_param(frame,sizeof(parametros),&parametros);
+                    ui->PitchCompass->setValue((double)(parametros[0]+90));
+                    ui->RollCompass->setValue(parametros[1]+90);
+                }
+                    break;
 
                 default:
                     ui->statusLabel->setText(tr("  Recibido paquete inesperado,"));
