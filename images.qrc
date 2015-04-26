@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/planeTop.png</file>
+        <file>img/YAW.png</file>
+        <file>img/PITCH.png</file>
+        <file>img/EngineButton.png</file>
+        <file>img/broken-glass.png</file>
+        <file>img/EngineButtonStart.png</file>
+        <file>img/EngineButtonStop.png</file>
+        <file>img/gtk_refresh.png</file>
+        <file>img/Map.png</file>
+    </qresource>
+</RCC>
