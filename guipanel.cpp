@@ -8,7 +8,8 @@
 #include <QMessageBox>    // Se deben incluir cabeceras a los componentes que se vayan a crear en la clase
 // y que no estén incluidos en el interfaz gráfico. En este caso, la ventana de PopUp
 // que se muestra al recibir un PING de respuesta
-
+#include <stdint.h>
+#include <stdbool.h>
 
 #include <QPainter>       
 #include <QTimer>
@@ -80,8 +81,7 @@ GUIPanel::~GUIPanel() // Destructor de la clase
 void GUIPanel::disableWidgets(){
     // Esconde controles de PRUEBA (*QUITAR en la aplicacion -> solo de ejemplo)
     ui->yawDial->setVisible(false);
-    ui->rollSlider->setVisible(false);
-    ui->pitchSlider->setVisible(false);
+
     ui->introFuel->setVisible(false);
 
     // Deshabilita controles e indicadores para que no funcionen hasta que nos conectemos a la TIVA
@@ -100,8 +100,7 @@ void GUIPanel::disableWidgets(){
 void GUIPanel::enableWidgets(){
     // Muestra controles de PRUEBA (*QUITAR -> solo de ejemplo)
     ui->yawDial->setVisible(true);
-    ui->rollSlider->setVisible(true);
-    ui->pitchSlider->setVisible(true);
+
     ui->introFuel->setVisible(true);
 
     // Habilita controles e indicadores
@@ -130,7 +129,7 @@ void GUIPanel::initWidgets(){
     ui->speedSlider->setValue(60);       // Control del velocidad: Quitar en aplicación final
 
     ui->RollCompass->setValue(90); // Estado inicial del giroscopio de ROLL
-    ui->rollSlider->setValue(90);  // Control de ROLL: Quitar en aplicacion final
+
 
     ui->YawCompass->setValue(0); // Estado inicial del giroscopo de PITCH
     ui->yawDial->setValue(180);  // Control de Pitch: Quitar en aplicación final
@@ -191,6 +190,7 @@ void GUIPanel::readRequest()
                 case COMANDO_PING:  // Algunos comandos no tiene parametros
                     // Crea una ventana popup con el mensaje indicado
                     //statusLabel->setText(tr("  RESPUESTA A PING RECIBIDA"));
+                    qDebug() << "Comando PING";
                     ventanaca.exec();
                     break;
 
@@ -200,6 +200,7 @@ void GUIPanel::readRequest()
                     // a una estructura para poder procesar su informacion
                     PARAM_COMANDO_NO_IMPLEMENTADO parametro;
                     extract_packet_command_param(frame,sizeof(parametro),&parametro);
+                    qDebug() << "Comando No implemtentado";
                     // Muestra en una etiqueta (statuslabel) del GUI el mensaje
                     ui->statusLabel->setText(tr("  Comando rechazado,"));
                 }
@@ -210,15 +211,19 @@ void GUIPanel::readRequest()
                 {
                     // En otros comandos hay que extraer los parametros de la trama y copiarlos
                     // a una estructura para poder procesar su informacion
-                    short int parametros[2];
+                    int16_t parametros[2];
+
                     extract_packet_command_param(frame,sizeof(parametros),&parametros);
-                    ui->PitchCompass->setValue((double)(90-parametros[0]));
-                    ui->RollCompass->setValue(90-parametros[1]);
+
+                    qDebug() << "\n Comando EJES "<<parametros[0]<<" "<<parametros[1];
+                    ui->PitchCompass->setValue((double)(90+parametros[0]));
+                    ui->RollCompass->setValue((double)(90+parametros[1]));
                 }
                     break;
 
                 default:
                     ui->statusLabel->setText(tr("  Recibido paquete inesperado,"));
+                    qDebug() << "Comando inesperado";
                     break;
                 }
             }
@@ -356,9 +361,9 @@ void GUIPanel::on_runButton_clicked(){
             // Crear una trama con el comando COMANDO_START, para iniciar el funcionamiento de la
             // aplicación --> TO_DO
 
-            //size=create_frame((unsigned char *)paquete, COMANDO_START, NULL, 0, MAX_FRAME_SIZE);
+            size=create_frame((unsigned char *)paquete, COMANDO_START, NULL, 0, MAX_FRAME_SIZE);
             // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
-            //if (size>0) serial.write(paquete,size);
+            if (size>0) serial.write(paquete,size);
 
         }
     }else{ // Si esta con el icono Stop
@@ -623,8 +628,7 @@ void GUIPanel::initPitchCompass(){
     // Aguja tipo "rayo" // COMENTADO PARA USAR ROTACION DE PIXMAP
     ui->PitchCompass->setNeedle(new QwtDialSimpleNeedle(QwtDialSimpleNeedle::Arrow));
     ui->PitchCompass->setValue(90); // Aguja hacia al E al inicio
-    ui->pitchSlider->setMinimum(45);
-    ui->pitchSlider->setMaximum(135);
+
 
     // Escala para la esfera
     // Etiquetas y ticks/marcas
