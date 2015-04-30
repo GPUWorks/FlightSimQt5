@@ -92,7 +92,8 @@ typedef enum {
     COMANDO_START, // Comando aviso de inicio de aplicacion
     COMANDO_STOP,
     COMANDO_EJES,
-    COMANDO_SPEED
+    COMANDO_SPEED,
+    COMANDO_FUEL
 } commandTypes;
 
 //Estructuras relacionadas con los parametros de los comandos

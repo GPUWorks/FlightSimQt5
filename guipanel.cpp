@@ -58,7 +58,7 @@ GUIPanel::GUIPanel(QWidget *parent) :  // Inicializacion de variables
     initPitchCompass(); // Pinta y configura el componente del control de angulo de ataque (Pitch)
 
     // Configura otros controles e indicadores del GUI
-    ui->introFuel->setRange(0,100); // Rango de fuel(litros)*SOLO EJEMPLO->QUITAR*
+
     ui->Fuel->setAlarmBrush(QBrush(Qt::blue)); // Color del indicador de fuel
     ui->Fuel->setFillBrush(QBrush(Qt::blue));  // Color del indicador de fuel (zona de alarma)
     ui->Fuel->setAlarmEnabled(true);           // Para diferenciar entre zona normal y de alarma
@@ -82,7 +82,7 @@ void GUIPanel::disableWidgets(){
     // Esconde controles de PRUEBA (*QUITAR en la aplicacion -> solo de ejemplo)
 
 
-    ui->introFuel->setVisible(false);
+
 
     // Deshabilita controles e indicadores para que no funcionen hasta que nos conectemos a la TIVA
 
@@ -101,7 +101,6 @@ void GUIPanel::enableWidgets(){
     // Muestra controles de PRUEBA (*QUITAR -> solo de ejemplo)
 
 
-    ui->introFuel->setVisible(true);
 
     // Habilita controles e indicadores
 
@@ -215,10 +214,24 @@ void GUIPanel::readRequest()
 
                     extract_packet_command_param(frame,sizeof(parametros),&parametros);
 
-                    qDebug() << "\n Comando EJES "<<parametros[0]<<" "<<parametros[1];
-                    ui->PitchCompass->setValue((double)(90+parametros[0]));
-                    ui->RollCompass->setValue((double)(90+parametros[1]));
+                    qDebug() << "\n Comando EJES "<<parametros[0]<<" "<<parametros[1]<<" "<<parametros[2];
+                    ui->PitchCompass->setValue((double)(90-parametros[0]));
+                    ui->RollCompass->setValue((double)(90-parametros[1]));
                     ui->YawCompass->setValue((double)(parametros[2]));
+                }
+                    break;
+
+                case COMANDO_FUEL:
+                {
+                    // En otros comandos hay que extraer los parametros de la trama y copiarlos
+                    // a una estructura para poder procesar su informacion
+                    uint32_t combustible;
+                    extract_packet_command_param(frame,sizeof(combustible),&combustible);
+                    qDebug() << "Comando Combustible: "<<combustible;
+                    ui->Fuel->setValue((double)combustible);
+                    if(combustible==0){
+                        ui->speedSlider->setEnabled(false);
+                    }
                 }
                     break;
 
