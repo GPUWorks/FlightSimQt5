@@ -80,7 +80,7 @@ GUIPanel::~GUIPanel() // Destructor de la clase
 // Deshabilita los widgets mientras no queramos que funcionen
 void GUIPanel::disableWidgets(){
     // Esconde controles de PRUEBA (*QUITAR en la aplicacion -> solo de ejemplo)
-    ui->yawDial->setVisible(false);
+
 
     ui->introFuel->setVisible(false);
 
@@ -99,7 +99,7 @@ void GUIPanel::disableWidgets(){
 // Habilita los widgets para poder utilizarlos
 void GUIPanel::enableWidgets(){
     // Muestra controles de PRUEBA (*QUITAR -> solo de ejemplo)
-    ui->yawDial->setVisible(true);
+
 
     ui->introFuel->setVisible(true);
 
@@ -132,7 +132,7 @@ void GUIPanel::initWidgets(){
 
 
     ui->YawCompass->setValue(0); // Estado inicial del giroscopo de PITCH
-    ui->yawDial->setValue(180);  // Control de Pitch: Quitar en aplicación final
+
 
     ui->AutoPilot->setVisible(false); // Etiqueta de "Piloto automatico" no es visible
 }
@@ -211,15 +211,18 @@ void GUIPanel::readRequest()
                 {
                     // En otros comandos hay que extraer los parametros de la trama y copiarlos
                     // a una estructura para poder procesar su informacion
-                    int16_t parametros[2];
+                    int16_t parametros[3];
 
                     extract_packet_command_param(frame,sizeof(parametros),&parametros);
 
                     qDebug() << "\n Comando EJES "<<parametros[0]<<" "<<parametros[1];
                     ui->PitchCompass->setValue((double)(90+parametros[0]));
                     ui->RollCompass->setValue((double)(90+parametros[1]));
+                    ui->YawCompass->setValue((double)(parametros[2]));
                 }
                     break;
+
+
 
                 default:
                     ui->statusLabel->setText(tr("  Recibido paquete inesperado,"));
@@ -370,9 +373,9 @@ void GUIPanel::on_runButton_clicked(){
         // Crear una trama con el comando COMANDO_STOP, para detener el funcionamiento de la
         // aplicación  --> TO_DO
 
-        //size=create_frame((unsigned char *)paquete, COMANDO_STOP, NULL, 0, MAX_FRAME_SIZE);
+        size=create_frame((unsigned char *)paquete, COMANDO_STOP, NULL, 0, MAX_FRAME_SIZE);
         // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
-        //if (size>0) serial.write(paquete,size);
+        if (size>0) serial.write(paquete,size);
 
         ui->statusLabel->setText(tr("  Detenido: sin conexion USB") );
         activateRunButton();
@@ -727,10 +730,15 @@ void GUIPanel::on_pitchSlider_valueChanged(int value)
 // de la velocidad, ya que este valor se usará allí
 void GUIPanel::on_speedSlider_sliderReleased()
 {
-    // TODO: Creacion de un paquete de datos tipo COMANDO_SPEED, en el que se envíe una
-    // indicacion (valor absoluto, porcentaje,...) de la velocidad actual
+    uint32_t  velocidad=ui->speedSlider->value();
+    char paquete[MAX_FRAME_SIZE];
+    int size;
+
+
     if (connected) // Para que no se intenten enviar datos si la conexion USB no esta activa
     {
-        // TODO
+        size=create_frame((unsigned char *)paquete, COMANDO_SPEED, &velocidad, sizeof(velocidad), MAX_FRAME_SIZE);
+        // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
+        if (size>0) serial.write(paquete,size);
     }
 }

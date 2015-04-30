@@ -91,8 +91,8 @@ typedef enum {
     COMANDO_LEDS,   // Comando de ejemplo --> eliminar en la aplicacion final
     COMANDO_START, // Comando aviso de inicio de aplicacion
     COMANDO_STOP,
-    COMANDO_EJES// Comando de aviso de fin de aplicación
-// TODO: el alumno deberá añadir mas comandos y sus estructuras de datos correspondientes
+    COMANDO_EJES,
+    COMANDO_SPEED
 } commandTypes;
 
 //Estructuras relacionadas con los parametros de los comandos
