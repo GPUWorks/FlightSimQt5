@@ -9,6 +9,7 @@
 #include <qwt_analog_clock.h>
 #include <QTime>
 
+
 namespace Ui {
 class GUIPanel;
 }
@@ -29,15 +30,9 @@ private slots:
     void readRequest();
     void on_serialPortComboBox_currentIndexChanged(const QString &arg1);
     void on_statusButton_clicked();
-    void changeSpeed();
     void updateFlightTime();
 
-    void on_introFuel_valueChanged(int arg1);
-    void on_yawDial_valueChanged(int value);
-    void on_rollSlider_valueChanged(int value);
-    void on_pitchSlider_valueChanged(int value);
-    void on_refreshButton_clicked();
-    void on_speedSlider_sliderReleased();
+
 
 private: // funciones privadas. Las debe añadir el programador
     void pingDevice();
@@ -49,10 +44,7 @@ private: // funciones privadas. Las debe añadir el programador
     void enableWidgets();
     void initWidgets();
     void initClock();
-    void initSpeedometer();
-    void initYawCompass();
-    void initRollCompass();
-    void initPitchCompass();
+
 private:  // Variables privadas; excepto ui, las debe añadir el programador
     Ui::GUIPanel *ui;
     int transactionCount;
@@ -61,6 +53,7 @@ private:  // Variables privadas; excepto ui, las debe añadir el programador
     QByteArray request;
     QTime flightTime;
     QTimer *autoPilot; // Para crear un Timer que controle el parpadeo del indicador de autopiloto habilitado
+
 };
 
 #endif // GUIPANEL_H
