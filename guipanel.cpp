@@ -236,7 +236,7 @@ void GUIPanel::readRequest()
 
                     double altitud;
                     extract_packet_command_param(frame,sizeof(altitud),&altitud);
-                    qDebug()<<altitud;
+
                     ui->widgetPFD->setAltitude(altitud);
                     ui->widgetPFD->update();
 
