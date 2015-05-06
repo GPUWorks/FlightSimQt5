@@ -102,6 +102,12 @@ void GUIPanel::enableWidgets(){
     ui->serialPortComboBox->setEnabled(false);
 
     ui->widgetPFD->setEnabled(true);
+
+    ui->widgetPFD->setAltitude(3000);
+    ui->widgetPFD->setRoll(40);
+    ui->widgetPFD->setPitch(10);
+
+    ui->widgetPFD->update();
 }
 
 // Estado inicial de los widgets --> estado inicial del avion simulado
@@ -110,11 +116,7 @@ void GUIPanel::initWidgets(){
     ui->Fuel->setValue(100); // Valor inicial de fuel
 
     ui->speedSlider->setValue(60);       // Control del velocidad: Quitar en aplicación final
-    ui->widgetPFD->setAltitude(3000);
-    ui->widgetPFD->setRoll(40);
-    ui->widgetPFD->setPitch(10);
 
-    ui->widgetPFD->update();
     ui->AutoPilot->setVisible(false); // Etiqueta de "Piloto automatico" no es visible
 }
 
@@ -217,7 +219,26 @@ void GUIPanel::readRequest()
                     }
                 }
                     break;
+                case COMANDO_TIME:
+                {
+                    // En otros comandos hay que extraer los parametros de la trama y copiarlos
+                    // a una estructura para poder procesar su informacion
+                    qDebug() << "Comando TIME";
+                    updateFlightTime();
+                }
+                    break;
+                case COMANDO_HIGH:
+                {
+                    // En otros comandos hay que extraer los parametros de la trama y copiarlos
+                    // a una estructura para poder procesar su informacion
 
+                    uint32_t altitud;
+                    extract_packet_command_param(frame,sizeof(altitud),&altitud);
+                    qDebug() << "Comando HIGH: "<<altitud;
+                    ui->widgetPFD->setAltitude(altitud);
+
+                }
+                    break;
 
 
                 default:
@@ -360,6 +381,12 @@ void GUIPanel::on_runButton_clicked(){
             // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
             if (size>0) serial.write(paquete,size);
 
+            uint32_t hora;
+            hora=flightTime.hour()*60+flightTime.minute();
+            size=create_frame((unsigned char *)paquete, COMANDO_TIME, &hora, sizeof(hora), MAX_FRAME_SIZE);
+            // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
+            if (size>0) serial.write(paquete,size);
+
         }
     }else{ // Si esta con el icono Stop
         // Crear una trama con el comando COMANDO_STOP, para detener el funcionamiento de la
@@ -443,17 +470,11 @@ void GUIPanel::initClock(){
     flightTime = QTime::currentTime(); // Se inicia en principio con la hora del sistema
     ui->d_clock->setTime(flightTime);    // Se sincroniza el reloj gráfico con el objeto Qtime
 
-    // CONTROL POR TIMER QT --> BORRAR EN VERSION FINAL PARA CONTROL POR COMANDO DE TIVA
-    QTimer *timer = new QTimer(ui->d_clock);
-    // Reloj de a bordo del sistema
-    timer->connect(timer, SIGNAL(timeout()),
-                   this, SLOT(updateFlightTime()));
-    timer->start(1000);
 }
 
 //* CAMBIAR PARA QUE CADA SEGUNDO DE TIEMPO REAL SE MUESTRE COMO UN MINUTO EN EL RELOJ
 // DE A BORDO Y PARA QUE SEA LA TIVA LA QUE ACTUALICE EL RELOJ, Y NO UN TIMER QT  *//
 void GUIPanel::updateFlightTime(){
-    flightTime = flightTime.addSecs(1); // flightTime.addSecs(60);
+    flightTime = flightTime.addSecs(60);
     ui->d_clock->setTime(flightTime);
 }
