@@ -95,7 +95,8 @@ typedef enum {
     COMANDO_SPEED,
     COMANDO_FUEL,
     COMANDO_TIME,
-    COMANDO_HIGH
+    COMANDO_HIGH,
+    COMANDO_COLISION
 } commandTypes;
 
 //Estructuras relacionadas con los parametros de los comandos

@@ -32,7 +32,8 @@ private slots:
     void on_statusButton_clicked();
     void updateFlightTime();
 
-
+    void on_refreshButton_clicked();
+    void on_speedSlider_sliderReleased();
 
 private: // funciones privadas. Las debe añadir el programador
     void pingDevice();

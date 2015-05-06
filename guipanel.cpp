@@ -75,6 +75,12 @@ GUIPanel::GUIPanel(QWidget *parent) :  // Inicializacion de variables
 
 }
 
+// Slot asociado al boton de refresco, por si conectamos la TIVA despues de poner en marcha el GUI
+void GUIPanel::on_refreshButton_clicked()
+{
+    refreshPorts();
+}
+
 GUIPanel::~GUIPanel() // Destructor de la clase
 {
     delete ui;   // Borra el interfaz gráfico asociado a la clase
@@ -106,6 +112,7 @@ void GUIPanel::enableWidgets(){
     ui->widgetPFD->setAltitude(3000);
     ui->widgetPFD->setRoll(40);
     ui->widgetPFD->setPitch(10);
+    ui->widgetPFD->setAirspeed(60);
 
     ui->widgetPFD->update();
 }
@@ -197,8 +204,6 @@ void GUIPanel::readRequest()
                     int16_t parametros[3];
 
                     extract_packet_command_param(frame,sizeof(parametros),&parametros);
-
-                    qDebug() << "\n Comando EJES "<<(float)parametros[0]<<" "<<(float)parametros[1]<<" "<<(float)parametros[2];
                     ui->widgetPFD->setPitch((float)parametros[0]);
                     ui->widgetPFD->setRoll((float)parametros[1]);
                     ui->widgetPFD->setHeading((float)(parametros[2]));
@@ -210,7 +215,7 @@ void GUIPanel::readRequest()
                 {
                     // En otros comandos hay que extraer los parametros de la trama y copiarlos
                     // a una estructura para poder procesar su informacion
-                    uint32_t combustible;
+                    double combustible;
                     extract_packet_command_param(frame,sizeof(combustible),&combustible);
                     qDebug() << "Comando Combustible: "<<combustible;
                     ui->Fuel->setValue((double)combustible);
@@ -221,9 +226,6 @@ void GUIPanel::readRequest()
                     break;
                 case COMANDO_TIME:
                 {
-                    // En otros comandos hay que extraer los parametros de la trama y copiarlos
-                    // a una estructura para poder procesar su informacion
-                    qDebug() << "Comando TIME";
                     updateFlightTime();
                 }
                     break;
@@ -232,10 +234,20 @@ void GUIPanel::readRequest()
                     // En otros comandos hay que extraer los parametros de la trama y copiarlos
                     // a una estructura para poder procesar su informacion
 
-                    uint32_t altitud;
+                    double altitud;
                     extract_packet_command_param(frame,sizeof(altitud),&altitud);
-                    qDebug() << "Comando HIGH: "<<altitud;
+                    qDebug()<<altitud;
                     ui->widgetPFD->setAltitude(altitud);
+                    ui->widgetPFD->update();
+
+                }
+                    break;
+                case COMANDO_COLISION:
+                {
+                    //COLISION
+
+                    qDebug()<<"Comando Colision";
+
 
                 }
                     break;
@@ -477,4 +489,23 @@ void GUIPanel::initClock(){
 void GUIPanel::updateFlightTime(){
     flightTime = flightTime.addSecs(60);
     ui->d_clock->setTime(flightTime);
+}
+// Slot asociada a cambios en el estado de la palanca de velocidad. Además de afectar a la
+// esfera correspondiente, se deberá enviar un comando COMANDO_SPEED a la TIVA, con indicaciones
+// de la velocidad, ya que este valor se usará allí
+void GUIPanel::on_speedSlider_sliderReleased()
+{
+    uint32_t  velocidad=ui->speedSlider->value();
+    char paquete[MAX_FRAME_SIZE];
+    int size;
+
+
+    if (connected) // Para que no se intenten enviar datos si la conexion USB no esta activa
+    {
+        ui->widgetPFD->setAirspeed((float)velocidad);
+        ui->widgetPFD->update();
+        size=create_frame((unsigned char *)paquete, COMANDO_SPEED, &velocidad, sizeof(velocidad), MAX_FRAME_SIZE);
+        // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
+        if (size>0) serial.write(paquete,size);
+    }
 }
