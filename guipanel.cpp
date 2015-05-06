@@ -236,7 +236,6 @@ void GUIPanel::readRequest()
 
                     double altitud;
                     extract_packet_command_param(frame,sizeof(altitud),&altitud);
-
                     ui->widgetPFD->setAltitude(altitud);
                     ui->widgetPFD->update();
 
@@ -247,7 +246,10 @@ void GUIPanel::readRequest()
                     //COLISION
 
                     qDebug()<<"Comando Colision";
-
+                    ui->widgetPFD->setPitch(45);
+                    ui->widgetPFD->setRoll(45);
+                    ui->brokenGlass->setVisible(true);
+                    disableWidgets();
 
                 }
                     break;
@@ -389,6 +391,9 @@ void GUIPanel::on_runButton_clicked(){
         // Si esta con el icono Start
         startSlave(); // Aquí podriamos haber escrito todo el codigo de 'startSlave' en vez de llamarla.
         if (connected){ // Para que no se intenten enviar datos si la conexion USB no esta activa
+
+            ui->brokenGlass->setVisible(false);
+
             size=create_frame((unsigned char *)paquete, COMANDO_START, NULL, 0, MAX_FRAME_SIZE);
             // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
             if (size>0) serial.write(paquete,size);
