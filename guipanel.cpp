@@ -14,6 +14,10 @@
 #include <QPainter>       
 #include <QTimer>
 
+#include "artificialhorizon.h"
+#include "WidgetPFD.h"
+
+
 #if QT_VERSION < 0x040000
 #include <QColorGroup>    
 typedef QColorGroup Palette;
@@ -52,10 +56,8 @@ GUIPanel::GUIPanel(QWidget *parent) :  // Inicializacion de variables
     // Inicializa componentes para los controles y mandos de la cabina
 
     initClock(); // Pinta y configura el componente del reloj de vuelo
-    initSpeedometer(); // Pinta y configura el componente de control de velocidad
-    initYawCompass();  // Pinta y configura el componente del control de direccion (Yaw)
-    initRollCompass(); // Pinta y configura el componente del control de alabeo (Roll)
-    initPitchCompass(); // Pinta y configura el componente del control de angulo de ataque (Pitch)
+
+
 
     // Configura otros controles e indicadores del GUI
 
@@ -70,6 +72,7 @@ GUIPanel::GUIPanel(QWidget *parent) :  // Inicializacion de variables
     // se haya establecido conexión
     // Configuración inicial del indicadores varios
     initWidgets();
+
 }
 
 GUIPanel::~GUIPanel() // Destructor de la clase
@@ -79,60 +82,39 @@ GUIPanel::~GUIPanel() // Destructor de la clase
 
 // Deshabilita los widgets mientras no queramos que funcionen
 void GUIPanel::disableWidgets(){
-    // Esconde controles de PRUEBA (*QUITAR en la aplicacion -> solo de ejemplo)
-
-
-
-
-    // Deshabilita controles e indicadores para que no funcionen hasta que nos conectemos a la TIVA
+     // Deshabilita controles e indicadores para que no funcionen hasta que nos conectemos a la TIVA
 
     ui->d_clock->setEnabled(false);
     ui->Fuel->setEnabled(false);
-    ui->speedometer->setEnabled(false);
-    ui->speedSlider->setEnabled(false);
-    ui->height->setEnabled(false);
-    ui->YawCompass->setEnabled(false);
-    ui->RollCompass->setEnabled(false);
-    ui->PitchCompass->setEnabled(false);
+
+    ui->widgetPFD->setEnabled(false);
 }
 
 // Habilita los widgets para poder utilizarlos
 void GUIPanel::enableWidgets(){
-    // Muestra controles de PRUEBA (*QUITAR -> solo de ejemplo)
-
-
-
     // Habilita controles e indicadores
 
     ui->d_clock->setEnabled(true);
     ui->Fuel->setEnabled(true);
-    ui->speedometer->setEnabled(true);
-    ui->speedSlider->setEnabled(true);
-    ui->height->setEnabled(true);
-    ui->YawCompass->setEnabled(true);
-    ui->RollCompass->setEnabled(true);
-    ui->PitchCompass->setEnabled(true);
     ui->pingButton->setEnabled(true);
 
     // No se puede cambiar el puerto hasta detener la aplicación con el boton de STOP
     ui->serialPortComboBox->setEnabled(false);
+
+    ui->widgetPFD->setEnabled(true);
 }
 
 // Estado inicial de los widgets --> estado inicial del avion simulado
 void GUIPanel::initWidgets(){
     // Configuración inicial del indicadores varios
     ui->Fuel->setValue(100); // Valor inicial de fuel
-    ui->height->setValue(3000); // Valor inicial del altimetro
-    ui->brokenGlass->setVisible(false); // No queremos mostrar la cabina rota!!! (por ahora)
-    ui->speedometer->setValue(60);       // Velocidad inicial de velocidad en el indicador
+
     ui->speedSlider->setValue(60);       // Control del velocidad: Quitar en aplicación final
+    ui->widgetPFD->setAltitude(3000);
+    ui->widgetPFD->setRoll(40);
+    ui->widgetPFD->setPitch(10);
 
-    ui->RollCompass->setValue(90); // Estado inicial del giroscopio de ROLL
-
-
-    ui->YawCompass->setValue(0); // Estado inicial del giroscopo de PITCH
-
-
+    ui->widgetPFD->update();
     ui->AutoPilot->setVisible(false); // Etiqueta de "Piloto automatico" no es visible
 }
 
@@ -214,10 +196,11 @@ void GUIPanel::readRequest()
 
                     extract_packet_command_param(frame,sizeof(parametros),&parametros);
 
-                    qDebug() << "\n Comando EJES "<<parametros[0]<<" "<<parametros[1]<<" "<<parametros[2];
-                    ui->PitchCompass->setValue((double)(90-parametros[0]));
-                    ui->RollCompass->setValue((double)(90-parametros[1]));
-                    ui->YawCompass->setValue((double)(parametros[2]));
+                    qDebug() << "\n Comando EJES "<<(float)parametros[0]<<" "<<(float)parametros[1]<<" "<<(float)parametros[2];
+                    ui->widgetPFD->setPitch((float)parametros[0]);
+                    ui->widgetPFD->setRoll((float)parametros[1]);
+                    ui->widgetPFD->setHeading((float)(parametros[2]));
+                    ui->widgetPFD->update();
                 }
                     break;
 
@@ -373,10 +356,6 @@ void GUIPanel::on_runButton_clicked(){
         // Si esta con el icono Start
         startSlave(); // Aquí podriamos haber escrito todo el codigo de 'startSlave' en vez de llamarla.
         if (connected){ // Para que no se intenten enviar datos si la conexion USB no esta activa
-            ui->brokenGlass->setVisible(false); // Quita la imagen de "cabina rota"
-            // Crear una trama con el comando COMANDO_START, para iniciar el funcionamiento de la
-            // aplicación --> TO_DO
-
             size=create_frame((unsigned char *)paquete, COMANDO_START, NULL, 0, MAX_FRAME_SIZE);
             // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
             if (size>0) serial.write(paquete,size);
@@ -449,15 +428,15 @@ void GUIPanel::initClock(){
         QwtDialSimpleNeedle *hand = new QwtDialSimpleNeedle(
                     QwtDialSimpleNeedle::Arrow, true, handColor, knobColor);
         hand->setWidth(width);
-        ui->d_clock->scaleDraw()->setSpacing(2);
+        //ui->d_clock->scaleDraw()->setSpacing(2);
         ui->d_clock->setHand((QwtAnalogClock::Hand)i, hand);
     }
     // No quiero que se muestre la aguja del segundero
     ui->d_clock->setHand(QwtAnalogClock::SecondHand, NULL);
 
     // Tamaño de las marcas del reloj (4 pixel)
-    ui->d_clock->scaleDraw()->setTickLength( QwtScaleDiv::MajorTick, 4 );
-    ui->d_clock->scaleDraw()->setSpacing(2); // Distancia marcas del borde exterior
+    //ui->d_clock->scaleDraw()->setTickLength( QwtScaleDiv::MajorTick, 4 );
+    //ui->d_clock->scaleDraw()->setSpacing(2); // Distancia marcas del borde exterior
     // de la esfera
 
 
@@ -477,281 +456,4 @@ void GUIPanel::initClock(){
 void GUIPanel::updateFlightTime(){
     flightTime = flightTime.addSecs(1); // flightTime.addSecs(60);
     ui->d_clock->setTime(flightTime);
-}
-
-
-// Funcion que configura e inicializa la esfera de control de velocidad
-void GUIPanel::initSpeedometer(){
-
-    // Aspecto de la escala
-    QwtRoundScaleDraw *scaleDraw = new QwtRoundScaleDraw();
-    scaleDraw->setSpacing(2);
-    scaleDraw->setTickLength( QwtScaleDiv::MinorTick, 0 );
-    scaleDraw->setTickLength( QwtScaleDiv::MediumTick, 4 );
-    scaleDraw->setTickLength( QwtScaleDiv::MajorTick, 8 );
-    scaleDraw->enableComponent(QwtAbstractScaleDraw::Backbone, true);
-    scaleDraw->enableComponent(QwtAbstractScaleDraw::Labels, true);
-    ui->speedometer->setScaleDraw(scaleDraw);
-    ui->speedometer->setWrapping(false);  // La aguja no puede superar los valores
-    // maximo o minimo
-    ui->speedometer->setReadOnly(true); // La aguja no se puede mover con el raton
-
-    // Para que no dibuje la esfera completa, sino un arco de 270º centrado en la mitad
-    ui->speedometer->setOrigin(135);
-    ui->speedometer->setScaleArc(0.0, 270.0);
-
-    // Configuracion de la aguja del instrumento, y de los ticks
-    QwtDialSimpleNeedle *needle = new QwtDialSimpleNeedle(
-                QwtDialSimpleNeedle::Arrow, true, Qt::red,
-                QColor(Qt::gray).light(130));
-    ui->speedometer->setNeedle(needle);
-    ui->speedometer->setScale(0.0, 240.0); // Rango de valores del instrumento
-    ui->speedometer->setScaleMaxMajor(12); // Numero max de marcas de etiqueta "grandes"
-    ui->speedometer->setScaleMaxMinor(5); // Numero max de marcas de etiqueta "pequeñas"
-    ui->speedometer->scaleDraw()->setSpacing(2); // Distancia ticks del borde exterior
-    // de la esfera y las etiquetas
-
-    // Palanca de control para modificar la velocidad
-    // Si se decide controlar la velocidad con un potenciometro desde la TIVA,
-    // quitar este control y realizar su labor en los comandos recibidos de TIVA
-    // Una mayoría de estos cambios se pueden hacer DIRECTAMENTE en QTCreator
-    ui->speedSlider->setTrough(true); // La escala tiene "Muescas"*/
-    // Etiquetas y ticks del control
-    ui->speedSlider->setUpperBound(240); // Valor máximo de etiqueta del slider
-    ui->speedSlider->setLowerBound(0);   // Valor mínimo de etiqueta del slider
-    ui->speedSlider->setScaleMaxMajor(6); // Número max de marcas de etiqueta "grandes"
-    ui->speedSlider->setScaleMaxMinor(3); // Número max de marcas de etiqueta "pequeñas"
-    ui->speedSlider->setScaleStepSize(60); // Cada cuanto hay una marca
-
-    ui->speedSlider->setTotalSteps(120); // Cada vez que muevo el slider incremento en 2 (240/120)
-
-    // No es realista que los cambios de velocidad sean "instantaneos";por ello, al
-    // establecer una velocidad, usamos un Timer para ir alcanzando poco a poco la
-    // velocidad fijada, usando el "slot" "changeSpeed".
-    // TIMER para llamar a la función changeSpeed cada 50ms
-    QTimer *timer = new QTimer(ui->speedometer);
-    timer->connect(timer, SIGNAL(timeout()),
-                   this, SLOT(changeSpeed()));
-    timer->start(50);
-
-}
-
-// Ejemplo de SLOT que aumenta y disminuye paulatinamente la velocidad
-// Se llama (por parte de un TIMER) cada 50ms 
-void GUIPanel::changeSpeed() // Slider Controlled
-{
-    double thrust;
-    static double posOffset = 2;
-    static double negOffset = 4;
-    if(ui->Fuel->value() > 0 )
-        thrust = ui->speedSlider->value();
-    else
-        thrust = 0;
-    double speed = ui->speedometer->value();
-    if(speed != thrust){
-        if ( (speed < thrust))
-            ui->speedometer->setValue(speed + posOffset);
-        else if (speed > thrust)
-        {
-            ui->speedometer->setValue(speed - negOffset);
-        }
-    }
-}
-
-// Configuracion e inicialización de la esfera de "dirección" (YAW) del avion
-void GUIPanel::initYawCompass(){
-    // TODO: hacer usando como ejemplo las configuraciones de las esferas PITCH y ROLL y el
-    // dibujo del aspecto buscado en el control
-    ui->YawCompass->setMode(QwtDial::RotateScale); // Modo rotacion escala
-    //ui->YawCompass->setMode(QwtDial::RotateNeedle); // Modo rotacion aguja
-    // Aguja tipo "brujula"
-    ui->YawCompass->setNeedle(new QwtCompassMagnetNeedle(QwtCompassMagnetNeedle::ThinStyle));
-    ui->YawCompass->setValue(0); // Aguja hacia al N al inicio
-}
-
-
-// Configuración e inicialización de la esfera de "alabeo" (ROLL)
-void GUIPanel::initRollCompass(){
-
-    // Color del fondo de la esfera
-    Palette colorGroup;
-    colorGroup.setColor(Palette::Base, QColor(Qt::darkGray).dark(180));
-    colorGroup.setColor(Palette::Foreground,QColor(Qt::darkGray).dark(280));
-    colorGroup.setColor(Palette::Text, Qt::white);
-    ui->RollCompass->setPalette(colorGroup);
-
-    // Aguja tipo "brujula"
-    ui->RollCompass->setNeedle(new QwtCompassMagnetNeedle(QwtCompassMagnetNeedle::ThinStyle));
-    ui->RollCompass->setMode(QwtDial::RotateNeedle); // Lo que gira es la aguja
-
-    // Escala para la esfera
-    // Etiquetas y ticks/marcas
-    QMap<double, QString> map; // Indicamos que etiquetas queremos que salgan
-    map.insert(110, "R");      // y donde
-    map.insert(250, "L");
-    QwtCompassScaleDraw *rollScDraw = new QwtCompassScaleDraw(map);
-    // Longitud de las marcas
-    rollScDraw->setTickLength(QwtScaleDiv::MinorTick,0);  // Solo queremos
-    rollScDraw->setTickLength(QwtScaleDiv::MediumTick,0); // que aparezcan las
-    rollScDraw->setTickLength(QwtScaleDiv::MajorTick,10);  // marcas grandes
-    // Establecemos donde irán los Ticks (0 esta al "Norte" de la "brujula"
-    QList< double > ticks;
-    ticks.append(70.0);
-    ticks.append(90.0);
-    ticks.append(110.0);
-    ticks.append(250.0);
-    ticks.append(270.0);
-    ticks.append(291.0); // no 290, porque si no, no sale..(no se porqué)
-
-    // Divisiones de la escala
-    QwtScaleDiv myScDiv=rollScDraw->scaleDiv(); // Trabajamos con la escala
-
-    myScDiv.setInterval(QwtInterval(0,360)); // Rango 0-360º
-    // Solo aparecen ticks en la escala "mayor" (el resto está vacío)
-    myScDiv.setTicks(QwtScaleDiv::MinorTick,QList<double>());
-    myScDiv.setTicks(QwtScaleDiv::MediumTick,QList<double>());
-    myScDiv.setTicks(QwtScaleDiv::MajorTick,ticks);
-    // Indicamos que no aparezca el "circulo interior" pero si, las etiquetas
-    // y las marcas
-    rollScDraw->enableComponent(QwtAbstractScaleDraw::Labels,true);
-    rollScDraw->enableComponent(QwtAbstractScaleDraw::Ticks,true);
-    rollScDraw->enableComponent(QwtAbstractScaleDraw::Backbone,false);
-    rollScDraw->setSpacing(10); // Distancia al centro de la corona de ticks
-    // Asignamos el componente de escala al compas
-    ui->RollCompass->setScaleDraw(rollScDraw);
-    // .. y el componente de divisiones a la escala
-    rollScDraw->setScaleDiv(myScDiv); //(si se hace en otro orden NO funciona)
-
-    ui->RollCompass->setValue(90); // Posicion inicial (0 es el Norte)
-    ui->RollCompass->setWrapping(false); // La aguja no puede superar los valores máximo o minimo
-
-    //Esto de abajo permite que la etiqueta salga de color blanco
-    ui->NoPitchLabel->setText("<font color='white'>No Pitch</font>");
-}
-
-// Configuracion e inicialización de la esfera de "angulo de ataque" (PITCH) del avion
-
-void GUIPanel::initPitchCompass(){
-    // Color del fondo de la esfera
-    Palette colorGroup;
-    colorGroup.setColor(Palette::Base, Qt::darkBlue);
-    colorGroup.setColor(Palette::Foreground,
-                        QColor(Qt::darkBlue).dark(120));
-    colorGroup.setColor(Palette::Text, Qt::white);
-    ui->PitchCompass->setPalette(colorGroup);
-    ui->PitchCompass->setMode(QwtDial::RotateNeedle); // Modo rotacion escala
-
-    // Aguja tipo "rayo" // COMENTADO PARA USAR ROTACION DE PIXMAP
-    ui->PitchCompass->setNeedle(new QwtDialSimpleNeedle(QwtDialSimpleNeedle::Arrow));
-    ui->PitchCompass->setValue(90); // Aguja hacia al E al inicio
-
-
-    // Escala para la esfera
-    // Etiquetas y ticks/marcas
-    QMap<double, QString> map; // Indicamos que etiquetas queremos que salgan
-    QString label;
-    label.sprintf("45");
-    map.insert(45, label);
-    label.sprintf("0");
-    map.insert(90, label);
-    label.sprintf("-45");
-    map.insert(135, label);
-    QwtCompassScaleDraw *pitchScDraw = new QwtCompassScaleDraw(map);
-
-    // Longitud de las marcas
-    pitchScDraw ->setTickLength(QwtScaleDiv::MinorTick,0);  // Solo queremos
-    pitchScDraw->setTickLength(QwtScaleDiv::MediumTick,0); // que aparezcan las
-    pitchScDraw ->setTickLength(QwtScaleDiv::MajorTick,10);  // marcas grandes
-    // Establecemos donde irán los Ticks (0 esta al "Norte" de la "brujula"
-    QList< double > ticks;
-    ticks.append(45.0);
-    ticks.append(67.0);
-    ticks.append(90.0);
-    ticks.append(112.0);
-    ticks.append(135.0);
-
-    // Divisiones de la escala
-    QwtScaleDiv myScDiv=pitchScDraw->scaleDiv(); // Trabajamos con la escala
-
-    myScDiv.setInterval(QwtInterval(0,360)); // Rango 0-360º
-    // Solo aparecen ticks en la escala "mayor" (el resto está vacío)
-    myScDiv.setTicks(QwtScaleDiv::MinorTick,QList<double>());
-    myScDiv.setTicks(QwtScaleDiv::MediumTick,QList<double>());
-    myScDiv.setTicks(QwtScaleDiv::MajorTick,ticks);
-    // Indicamos que aparezca el "circulo interior",etiquetas y  marcas
-    pitchScDraw->enableComponent(QwtAbstractScaleDraw::Labels,true);
-    pitchScDraw->enableComponent(QwtAbstractScaleDraw::Ticks,true);
-    pitchScDraw->enableComponent(QwtAbstractScaleDraw::Backbone,true);
-    pitchScDraw->setSpacing(8); // Distancia al centro de la corona de ticks
-    // Asignamos el componente de escala al compas
-    ui->PitchCompass->setScaleDraw(pitchScDraw);
-    // .. y el componente de divisiones a la escala
-    pitchScDraw->setScaleDiv(myScDiv); //(si se hace en otro orden NO funciona)
-
-    ui->PitchCompass->setReadOnly(true);
-    ui->PitchCompass->setWrapping(false); // La aguja no puede superar los valores máximo o minimo
-}
-
-// Slot asociado al control de estado de gasolina -> en la aplicación final esto debe
-// asociarse al comando recibido de TIVA actualizando el estado de la gasolina
-void GUIPanel::on_introFuel_valueChanged(int arg1)
-{
-    ui->Fuel->setValue(arg1);
-    if(arg1<20)
-        ui->Fuel->setFillBrush(QBrush(Qt::red));
-    else
-        ui->Fuel->setFillBrush(QBrush(Qt::blue));
-}
-
-// Slot asociada a la variacion de "direccion" (YAW) --> en la aplicación final esto debe
-// asociarse al comando recibido de TIVA actualizando el estado de dirección, en funcion del
-// potenciometro asociado
-void GUIPanel::on_yawDial_valueChanged(int value)
-{
-    // En el control por el dial, se le suma 180, porque el 0 esta en el N en la esfera, y en el
-    // S en el dial de control.
-    if(value < 180)
-        ui->YawCompass->setValue(value + 180);
-    else
-        ui->YawCompass->setValue(value-180);
-}
-
-// Slot asociada a la variacion de "alabeo" (ROLL) --> en la aplicación final esto debe
-// asociarse al comando recibido de TIVA actualizando el estado de alabeo, en funcion del
-// potenciometro asociado
-void GUIPanel::on_rollSlider_valueChanged(int value)
-{
-    ui->RollCompass->setValue((double)value);
-}
-
-// Slot asociado al boton de refresco, por si conectamos la TIVA despues de poner en marcha el GUI
-void GUIPanel::on_refreshButton_clicked()
-{
-    refreshPorts();
-}
-
-// Slot asociada a la variacion de "ataque" (pitch) --> en la aplicación final esto debe
-// asociarse al comando recibido de TIVA actualizando el estado de ataque, en funcion del
-// potenciometro asociado
-void GUIPanel::on_pitchSlider_valueChanged(int value)
-{
-    ui->PitchCompass->setValue((double)value);
-}
-
-// Slot asociada a cambios en el estado de la palanca de velocidad. Además de afectar a la
-// esfera correspondiente, se deberá enviar un comando COMANDO_SPEED a la TIVA, con indicaciones
-// de la velocidad, ya que este valor se usará allí
-void GUIPanel::on_speedSlider_sliderReleased()
-{
-    uint32_t  velocidad=ui->speedSlider->value();
-    char paquete[MAX_FRAME_SIZE];
-    int size;
-
-
-    if (connected) // Para que no se intenten enviar datos si la conexion USB no esta activa
-    {
-        size=create_frame((unsigned char *)paquete, COMANDO_SPEED, &velocidad, sizeof(velocidad), MAX_FRAME_SIZE);
-        // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
-        if (size>0) serial.write(paquete,size);
-    }
 }
