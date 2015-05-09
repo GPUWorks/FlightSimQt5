@@ -97,7 +97,8 @@ typedef enum {
     COMANDO_TIME,
     COMANDO_HIGH,
     COMANDO_COLISION,
-    COMANDO_AUTOMATICO
+    COMANDO_AUTOMATICO,
+    COMANDO_RADIO
 } commandTypes;
 
 //Estructuras relacionadas con los parametros de los comandos

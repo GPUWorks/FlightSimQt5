@@ -284,6 +284,15 @@ void GUIPanel::readRequest()
 
                 }
                     break;
+                case COMANDO_RADIO:
+                {
+
+                    char info[40];
+                    extract_packet_command_param(frame,sizeof(info),&info);
+                    ui->statusLabel->setText(info);
+
+                }
+                    break;
 
 
                 default:
