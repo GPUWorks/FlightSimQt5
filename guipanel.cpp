@@ -537,6 +537,8 @@ void GUIPanel::updateFlightTime(){
     int hora;
     int min;
     hora=time/60;
+    min=(time%60);
+    flightTime.setHMS(hora,min,0);
     //flightTime = flightTime.addSecs(60);
     ui->d_clock->setTime(flightTime);
 }
