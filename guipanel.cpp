@@ -226,6 +226,8 @@ void GUIPanel::readRequest()
                     break;
                 case COMANDO_TIME:
                 {
+
+                    extract_packet_command_param(frame,sizeof(time),&time);
                     updateFlightTime();
                 }
                     break;
@@ -532,7 +534,10 @@ void GUIPanel::initClock(){
 //* CAMBIAR PARA QUE CADA SEGUNDO DE TIEMPO REAL SE MUESTRE COMO UN MINUTO EN EL RELOJ
 // DE A BORDO Y PARA QUE SEA LA TIVA LA QUE ACTUALICE EL RELOJ, Y NO UN TIMER QT  *//
 void GUIPanel::updateFlightTime(){
-    flightTime = flightTime.addSecs(60);
+    int hora;
+    int min;
+    hora=time/60;
+    //flightTime = flightTime.addSecs(60);
     ui->d_clock->setTime(flightTime);
 }
 // Slot asociada a cambios en el estado de la palanca de velocidad. Además de afectar a la

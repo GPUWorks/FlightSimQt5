@@ -54,6 +54,7 @@ private:  // Variables privadas; excepto ui, las debe añadir el programador
     QByteArray request;
     QTime flightTime;
     QTimer *autoPilot; // Para crear un Timer que controle el parpadeo del indicador de autopiloto habilitado
+    int time;
 
 };
 
