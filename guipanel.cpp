@@ -246,7 +246,7 @@ void GUIPanel::readRequest()
                     //COLISION
 
                     qDebug()<<"Comando Colision";
-                    ui->widgetPFD->setPitch(45);
+                    ui->widgetPFD->setPitch(-50);
                     ui->widgetPFD->setRoll(45);
                     ui->brokenGlass->setVisible(true);
                     ui->widgetPFD->update();
@@ -260,8 +260,26 @@ void GUIPanel::readRequest()
 
                     float velocidad;
                     extract_packet_command_param(frame,sizeof(velocidad),&velocidad);
+                    ui->speedSlider->setValue(velocidad);
                     ui->widgetPFD->setAirspeed(velocidad);
                     ui->widgetPFD->update();
+
+
+                }
+                    break;
+
+                case COMANDO_AUTOMATICO:
+                {
+
+                    bool activo;
+                    extract_packet_command_param(frame,sizeof(activo),&activo);
+                    if(activo){
+                       ui->AutoPilot->setVisible(true);
+
+                    }else{
+                        ui->AutoPilot->setVisible(false);
+                    }
+
 
 
                 }
