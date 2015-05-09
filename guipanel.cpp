@@ -249,7 +249,20 @@ void GUIPanel::readRequest()
                     ui->widgetPFD->setPitch(45);
                     ui->widgetPFD->setRoll(45);
                     ui->brokenGlass->setVisible(true);
-                    disableWidgets();
+                    ui->widgetPFD->update();
+
+                }
+                    break;
+
+                case COMANDO_SPEED:
+                {
+                    //COLISION
+
+                    float velocidad;
+                    extract_packet_command_param(frame,sizeof(velocidad),&velocidad);
+                    ui->widgetPFD->setAirspeed(velocidad);
+                    ui->widgetPFD->update();
+
 
                 }
                     break;
@@ -500,7 +513,7 @@ void GUIPanel::updateFlightTime(){
 // de la velocidad, ya que este valor se usará allí
 void GUIPanel::on_speedSlider_sliderReleased()
 {
-    uint32_t  velocidad=ui->speedSlider->value();
+    float  velocidad=ui->speedSlider->value();
     char paquete[MAX_FRAME_SIZE];
     int size;
 
