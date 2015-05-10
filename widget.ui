@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Widget</class>
+ <widget class="QWidget" name="Widget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>717</width>
+    <height>444</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Widget</string>
+  </property>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>-4</x>
+     <y>1</y>
+     <width>857</width>
+     <height>655</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="images.qrc">:/imgs/Background.jpg</pixmap>
+   </property>
+  </widget>
+  <widget class="QLabel" name="tank">
+   <property name="geometry">
+    <rect>
+     <x>89</x>
+     <y>373</y>
+     <width>47</width>
+     <height>35</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="images.qrc">:/imgs/Tank.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="up">
+   <property name="geometry">
+    <rect>
+     <x>598</x>
+     <y>337</y>
+     <width>37</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/imgs/icon-arrow-up-b-128.png</normaloff>:/imgs/icon-arrow-up-b-128.png</iconset>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="down">
+   <property name="geometry">
+    <rect>
+     <x>600</x>
+     <y>376</y>
+     <width>37</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/imgs/icon-arrow-down-b-128.png</normaloff>:/imgs/icon-arrow-down-b-128.png</iconset>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="right">
+   <property name="geometry">
+    <rect>
+     <x>641</x>
+     <y>355</y>
+     <width>37</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/imgs/icon-arrow-right-b-128.png</normaloff>:/imgs/icon-arrow-right-b-128.png</iconset>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="left">
+   <property name="geometry">
+    <rect>
+     <x>556</x>
+     <y>357</y>
+     <width>37</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/imgs/icon-arrow-left-b-128.png</normaloff>:/imgs/icon-arrow-left-b-128.png</iconset>
+   </property>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
+ <connections/>
+</ui>

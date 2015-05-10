@@ -59,14 +59,8 @@ GUIPanel::GUIPanel(QWidget *parent) :  // Inicializacion de variables
 
 
 
-    // Configura otros controles e indicadores del GUI
-
-    ui->Fuel->setAlarmBrush(QBrush(Qt::blue)); // Color del indicador de fuel
-    ui->Fuel->setFillBrush(QBrush(Qt::blue));  // Color del indicador de fuel (zona de alarma)
-    ui->Fuel->setAlarmEnabled(true);           // Para diferenciar entre zona normal y de alarma
-
     // Deshabilita controles hasta que nos conectemos
-    //disableWidgets();  // TODO: Esto lo descomentaremos en la aplicación final, para que los mandos
+    disableWidgets();  // TODO: Esto lo descomentaremos en la aplicación final, para que los mandos
     // y elementos no esten activos de inicio
     ui->pingButton->setEnabled(false);    // Se deshabilita el botón de ping del interfaz gráfico, hasta que
     // se haya establecido conexión
@@ -110,8 +104,8 @@ void GUIPanel::enableWidgets(){
     ui->widgetPFD->setEnabled(true);
 
     ui->widgetPFD->setAltitude(3000);
-    ui->widgetPFD->setRoll(40);
-    ui->widgetPFD->setPitch(10);
+    ui->widgetPFD->setRoll(0);
+    ui->widgetPFD->setPitch(0);
     ui->widgetPFD->setAirspeed(60);
 
     ui->widgetPFD->update();

@@ -9,6 +9,6 @@
         <file>img/EngineButtonStop.png</file>
         <file>img/gtk_refresh.png</file>
         <file>img/Map.png</file>
-        <file>img/metal.jpg</file>
+        <file>img/fondo.png</file>
     </qresource>
 </RCC>

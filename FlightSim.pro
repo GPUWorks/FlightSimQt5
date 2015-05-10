@@ -56,4 +56,6 @@ RESOURCES += \
     images.qrc \
     qfi.qrc
 
+DISTFILES +=
+
 
