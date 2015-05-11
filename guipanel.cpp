@@ -339,6 +339,12 @@ void GUIPanel::readRequest()
                     ui->widgetPFD->setRoll(45);
                     ui->brokenGlass->setVisible(true);
                     ui->widgetPFD->update();
+                    gps->close();
+                    ui->statusLabel->setText(tr("  Detenido: sin conexion USB") );
+                    activateRunButton();
+                    ui->serialPortComboBox->setEnabled(true);
+                    connected = false;
+                    disableWidgets();
 
                 }
                     break;
