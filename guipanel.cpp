@@ -105,8 +105,6 @@ void GUIPanel::enableWidgets(){
 
     ui->widgetPFD->setEnabled(true);
 
-
-
 }
 
 // Estado inicial de los widgets --> estado inicial del avion simulado
@@ -114,9 +112,11 @@ void GUIPanel::initWidgets(){
     // Configuración inicial del indicadores varios
     ui->Fuel->setValue(100); // Valor inicial de fuel
 
+
+    //Valores Inciales
     velocidadActual=60;
     altitudObjetivo=60;
-    ui->speedSlider->setValue(velocidadActual);       // Control del velocidad: Quitar en aplicación final
+    ui->speedSlider->setValue(velocidadActual);
 
     altitudActual=3000;
     altitudObjetivo=3000;
@@ -136,9 +136,13 @@ void GUIPanel::initWidgets(){
 
     gps= new GPS();
     gps->show();
-
+    gps->setVelocidad(velocidadActual);
+    gps->setPitch(pitchActual);
+    gps->setYaw(yawActual);
     ui->AutoPilot->setVisible(false); // Etiqueta de "Piloto automatico" no es visible
 
+
+    //Timer para actualizar el widgetPFD cada 50 ms
     QTimer *timer = new QTimer(this);
     timer->connect(timer, SIGNAL(timeout()),
                    this, SLOT(ActualizarPFD()));
@@ -149,10 +153,7 @@ void GUIPanel::initWidgets(){
 
 void GUIPanel::ActualizarPFD(){
 
-
-
-
-    if(ui->Fuel->value() > 0 ){
+    if(altitudActual>0){
         if(velocidadObjetivo != velocidadActual){
             if ( (velocidadActual < velocidadObjetivo)){
                 velocidadActual=velocidadActual + 2;
@@ -167,21 +168,21 @@ void GUIPanel::ActualizarPFD(){
         }
         if(altitudObjetivo != altitudActual){
             if ( (altitudActual < altitudObjetivo)){
-                altitudActual=altitudActual + (altitudObjetivo -altitudActual)/20;
+                altitudActual=altitudActual + (altitudObjetivo -altitudActual)/10;
                 ui->widgetPFD->setAltitude(altitudActual);
             }else if (altitudActual > altitudObjetivo)
             {
-                altitudActual=altitudActual - (altitudActual -altitudObjetivo)/20;
+                altitudActual=altitudActual - (altitudActual -altitudObjetivo)/10;
                 ui->widgetPFD->setAltitude(altitudActual);
             }
         }
         if(pitchObjetivo != pitchActual){
             if ( (pitchActual < pitchObjetivo)){
-                pitchActual=pitchActual + (pitchObjetivo -pitchActual)/20;
+                pitchActual=pitchActual + (pitchObjetivo -pitchActual)/10;
                 ui->widgetPFD->setPitch(pitchActual);
             }else if (pitchActual > pitchObjetivo)
             {
-                pitchActual=pitchActual - (pitchActual -pitchObjetivo)/20;
+                pitchActual=pitchActual - (pitchActual -pitchObjetivo)/10;
                 ui->widgetPFD->setPitch(pitchActual);
             }
             gps->setPitch(pitchObjetivo);
@@ -205,11 +206,10 @@ void GUIPanel::ActualizarPFD(){
 
 
         }
-    }else{
+
+        ui->widgetPFD->update();
 
     }
-
-    ui->widgetPFD->update();
 
 
 }
