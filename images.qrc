@@ -8,7 +8,9 @@
         <file>img/EngineButtonStart.png</file>
         <file>img/EngineButtonStop.png</file>
         <file>img/gtk_refresh.png</file>
-        <file>img/Map.png</file>
         <file>img/fondo.png</file>
+        <file>img/gpsUP.png</file>
+        <file>img/map.svg</file>
+        <file>img/mapa.jpg</file>
     </qresource>
 </RCC>

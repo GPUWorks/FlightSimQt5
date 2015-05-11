@@ -34,6 +34,7 @@ private slots:
 
     void on_refreshButton_clicked();
     void on_speedSlider_sliderReleased();
+    void ActualizarPFD();
 
 private: // funciones privadas. Las debe añadir el programador
     void pingDevice();
@@ -46,6 +47,7 @@ private: // funciones privadas. Las debe añadir el programador
     void initWidgets();
     void initClock();
 
+
 private:  // Variables privadas; excepto ui, las debe añadir el programador
     Ui::GUIPanel *ui;
     int transactionCount;
@@ -55,6 +57,22 @@ private:  // Variables privadas; excepto ui, las debe añadir el programador
     QTime flightTime;
     QTimer *autoPilot; // Para crear un Timer que controle el parpadeo del indicador de autopiloto habilitado
     int time;
+    GPS *gps;
+
+    float velocidadActual;
+    float velocidadObjetivo;
+
+    double  altitudActual;
+    double  altitudObjetivo;
+
+    float rollActual;
+    float rollObjetivo;
+
+    float pitchActual;
+    float pitchObjetivo;
+
+    float yawActual;
+    float yawObjetivo;
 
 };
 

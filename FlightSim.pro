@@ -24,17 +24,20 @@ SOURCES += main.cpp\
         protocol.c \
         qfi_PFD.cpp \
         WidgetPFD.cpp \
-        LayoutSquare.cpp
+        LayoutSquare.cpp \
+    gps.cpp
 
 HEADERS  += guipanel.h \
             crc.h \
             protocol.h \
             qfi_PFD.h \
             WidgetPFD.h \
-            LayoutSquare.h
+            LayoutSquare.h \
+    gps.h
 
 FORMS    += guipanel.ui \
-    WidgetPFD.ui
+    WidgetPFD.ui \
+    gps.ui
 CONFIG   +=qwt
 #CONFIG   +=console# Añadir para usar la consola de depuracion --> Window-Views-Debugger Log
 
@@ -55,7 +58,4 @@ QMAKE_LFLAGS_RELEASE ="/OPT:REF" # Evita el molesto problema de Debug/xxx.exe
 RESOURCES += \
     images.qrc \
     qfi.qrc
-
-DISTFILES +=
-
 

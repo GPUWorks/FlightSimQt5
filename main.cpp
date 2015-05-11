@@ -1,5 +1,7 @@
 #include <QApplication>
+
 #include "guipanel.h"
+#include "gps.h"
 
 int main(int argc, char *argv[])
 {
@@ -7,6 +9,7 @@ int main(int argc, char *argv[])
     GUIPanel w;  // Crea un elemento con la clase del interfaz gráfico deseado (GUIPanel)
 
     w.show();    // Y lo hace aparecer en pantalla
+
 
 
 

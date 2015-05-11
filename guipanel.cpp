@@ -16,6 +16,7 @@
 
 #include "artificialhorizon.h"
 #include "WidgetPFD.h"
+#include "gps.h"
 
 
 #if QT_VERSION < 0x040000
@@ -59,13 +60,14 @@ GUIPanel::GUIPanel(QWidget *parent) :  // Inicializacion de variables
 
 
 
+
     // Deshabilita controles hasta que nos conectemos
     disableWidgets();  // TODO: Esto lo descomentaremos en la aplicación final, para que los mandos
     // y elementos no esten activos de inicio
     ui->pingButton->setEnabled(false);    // Se deshabilita el botón de ping del interfaz gráfico, hasta que
     // se haya establecido conexión
     // Configuración inicial del indicadores varios
-    initWidgets();
+
 
 }
 
@@ -103,12 +105,8 @@ void GUIPanel::enableWidgets(){
 
     ui->widgetPFD->setEnabled(true);
 
-    ui->widgetPFD->setAltitude(3000);
-    ui->widgetPFD->setRoll(0);
-    ui->widgetPFD->setPitch(0);
-    ui->widgetPFD->setAirspeed(60);
 
-    ui->widgetPFD->update();
+
 }
 
 // Estado inicial de los widgets --> estado inicial del avion simulado
@@ -116,9 +114,98 @@ void GUIPanel::initWidgets(){
     // Configuración inicial del indicadores varios
     ui->Fuel->setValue(100); // Valor inicial de fuel
 
-    ui->speedSlider->setValue(60);       // Control del velocidad: Quitar en aplicación final
+    velocidadActual=60;
+    altitudObjetivo=60;
+    ui->speedSlider->setValue(velocidadActual);       // Control del velocidad: Quitar en aplicación final
+
+    altitudActual=3000;
+    altitudObjetivo=3000;
+    ui->widgetPFD->setAltitude(altitudActual);
+
+    rollActual=0;
+    rollObjetivo=0;
+    pitchActual=0;
+    pitchObjetivo=0;
+    yawActual=0;
+    yawObjetivo=0;
+    ui->widgetPFD->setRoll(0);
+    ui->widgetPFD->setPitch(0);
+    ui->widgetPFD->setHeading(0);
+
+    ui->widgetPFD->update();
+
+    *gps= new GPS();
+    gps->show();
 
     ui->AutoPilot->setVisible(false); // Etiqueta de "Piloto automatico" no es visible
+
+    QTimer *timer = new QTimer(this);
+    timer->connect(timer, SIGNAL(timeout()),
+                   this, SLOT(ActualizarPFD()));
+    timer->start(50);
+
+
+}
+
+void GUIPanel::ActualizarPFD(){
+
+
+
+
+    if(ui->Fuel->value() > 0 ){
+        if(velocidadObjetivo != velocidadActual){
+            if ( (velocidadActual < velocidadObjetivo)){
+                velocidadActual=velocidadActual + 2;
+                ui->widgetPFD->setAirspeed(velocidadActual);
+            }else if (velocidadActual > velocidadObjetivo)
+            {
+                velocidadActual=velocidadActual - 4;
+                ui->widgetPFD->setAirspeed(velocidadActual);
+            }
+        }
+        if(altitudObjetivo != altitudActual){
+            if ( (altitudActual < altitudObjetivo)){
+                altitudActual=altitudActual + (altitudObjetivo -altitudActual)/20;
+                ui->widgetPFD->setAltitude(altitudActual);
+            }else if (altitudActual > altitudObjetivo)
+            {
+                altitudActual=altitudActual - (altitudActual -altitudObjetivo)/20;
+                ui->widgetPFD->setAltitude(altitudActual);
+            }
+        }
+        if(pitchObjetivo != pitchActual){
+            if ( (pitchActual < pitchObjetivo)){
+                pitchActual=pitchActual + (pitchObjetivo -pitchActual)/20;
+                ui->widgetPFD->setPitch(pitchActual);
+            }else if (pitchActual > pitchObjetivo)
+            {
+                pitchActual=pitchActual - (pitchActual -pitchObjetivo)/20;
+                ui->widgetPFD->setPitch(pitchActual);
+            }
+        }
+        if(rollObjetivo != rollActual){
+            if ( (rollActual < rollObjetivo)){
+                rollActual=rollActual + (rollObjetivo -rollActual)/20;
+                ui->widgetPFD->setRoll(rollActual);
+            }else if (rollActual > rollObjetivo)
+            {
+                rollActual=rollActual - (rollActual -rollObjetivo)/20;
+                ui->widgetPFD->setRoll(rollActual);
+            }
+        }
+        if(yawObjetivo != yawActual){
+
+            yawActual=yawObjetivo;
+            ui->widgetPFD->setHeading(yawActual);
+
+        }
+    }else{
+
+    }
+
+    ui->widgetPFD->update();
+
+
 }
 
 
@@ -198,10 +285,10 @@ void GUIPanel::readRequest()
                     int16_t parametros[3];
 
                     extract_packet_command_param(frame,sizeof(parametros),&parametros);
-                    ui->widgetPFD->setPitch((float)parametros[0]);
-                    ui->widgetPFD->setRoll((float)parametros[1]);
-                    ui->widgetPFD->setHeading((float)(parametros[2]));
-                    ui->widgetPFD->update();
+                    qDebug() << "Comando EJES";
+                    pitchObjetivo=parametros[0];
+                    rollObjetivo=parametros[1];
+                    yawObjetivo=parametros[2];
                 }
                     break;
 
@@ -211,7 +298,7 @@ void GUIPanel::readRequest()
                     // a una estructura para poder procesar su informacion
                     double combustible;
                     extract_packet_command_param(frame,sizeof(combustible),&combustible);
-                    qDebug() << "Comando Combustible: "<<combustible;
+                    qDebug() << "Comando FUEL";
                     ui->Fuel->setValue((double)combustible);
                     if(combustible==0){
                         ui->speedSlider->setEnabled(false);
@@ -222,6 +309,7 @@ void GUIPanel::readRequest()
                 {
 
                     extract_packet_command_param(frame,sizeof(time),&time);
+                    qDebug() << "Comando TIME";
                     updateFlightTime();
                 }
                     break;
@@ -230,11 +318,10 @@ void GUIPanel::readRequest()
                     // En otros comandos hay que extraer los parametros de la trama y copiarlos
                     // a una estructura para poder procesar su informacion
 
-                    double altitud;
-                    extract_packet_command_param(frame,sizeof(altitud),&altitud);
-                    ui->widgetPFD->setAltitude(altitud);
-                    ui->widgetPFD->update();
 
+                    extract_packet_command_param(frame,sizeof(altitudObjetivo),&altitudObjetivo);
+
+                    qDebug() << "Comando HIGH";
                 }
                     break;
                 case COMANDO_COLISION:
@@ -254,11 +341,9 @@ void GUIPanel::readRequest()
                 {
                     //COLISION
 
-                    float velocidad;
-                    extract_packet_command_param(frame,sizeof(velocidad),&velocidad);
-                    ui->speedSlider->setValue(velocidad);
-                    ui->widgetPFD->setAirspeed(velocidad);
-                    ui->widgetPFD->update();
+
+                    extract_packet_command_param(frame,sizeof(velocidadObjetivo),&velocidadObjetivo);
+                    qDebug() << "Comando SPEED";
 
 
                 }
@@ -269,6 +354,7 @@ void GUIPanel::readRequest()
 
                     bool activo;
                     extract_packet_command_param(frame,sizeof(activo),&activo);
+                    qDebug() << "Comando AUTOMATICO";
                     if(activo){
                        ui->AutoPilot->setVisible(true);
 
@@ -285,6 +371,7 @@ void GUIPanel::readRequest()
 
                     char info[40];
                     extract_packet_command_param(frame,sizeof(info),&info);
+                    qDebug() << "Comando RADIO";
                     ui->statusLabel->setText(info);
 
                 }
@@ -426,7 +513,10 @@ void GUIPanel::on_runButton_clicked(){
     if(!connected){
         // Si esta con el icono Start
         startSlave(); // Aquí podriamos haber escrito todo el codigo de 'startSlave' en vez de llamarla.
+
         if (connected){ // Para que no se intenten enviar datos si la conexion USB no esta activa
+
+            initWidgets();
 
             ui->brokenGlass->setVisible(false);
 
@@ -437,6 +527,11 @@ void GUIPanel::on_runButton_clicked(){
             uint32_t hora;
             hora=flightTime.hour()*60+flightTime.minute();
             size=create_frame((unsigned char *)paquete, COMANDO_TIME, &hora, sizeof(hora), MAX_FRAME_SIZE);
+            // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
+            if (size>0) serial.write(paquete,size);
+
+
+            size=create_frame((unsigned char *)paquete, COMANDO_SPEED, &velocidadObjetivo, sizeof(velocidadObjetivo), MAX_FRAME_SIZE);
             // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
             if (size>0) serial.write(paquete,size);
 
@@ -454,7 +549,7 @@ void GUIPanel::on_runButton_clicked(){
         ui->serialPortComboBox->setEnabled(true);
         connected = false;
         disableWidgets();
-        initWidgets();
+
     }
 }
 
@@ -541,16 +636,15 @@ void GUIPanel::updateFlightTime(){
 // de la velocidad, ya que este valor se usará allí
 void GUIPanel::on_speedSlider_sliderReleased()
 {
-    float  velocidad=ui->speedSlider->value();
+    velocidadObjetivo=ui->speedSlider->value();
     char paquete[MAX_FRAME_SIZE];
     int size;
 
-
     if (connected) // Para que no se intenten enviar datos si la conexion USB no esta activa
     {
-        ui->widgetPFD->setAirspeed((float)velocidad);
-        ui->widgetPFD->update();
-        size=create_frame((unsigned char *)paquete, COMANDO_SPEED, &velocidad, sizeof(velocidad), MAX_FRAME_SIZE);
+        /*ui->widgetPFD->setAirspeed((float)velocidad);
+        ui->widgetPFD->update();*/
+        size=create_frame((unsigned char *)paquete, COMANDO_SPEED, &velocidadObjetivo, sizeof(velocidadObjetivo), MAX_FRAME_SIZE);
         // Si la trama se creó correctamente, se escribe el paquete por el puerto serie USB
         if (size>0) serial.write(paquete,size);
     }

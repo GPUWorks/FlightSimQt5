@@ -85,6 +85,7 @@ public:
         m_pfd->setRoll( roll );
     }
 
+
     inline void setPitch( float pitch )
     {
         m_pfd->setPitch( pitch );
