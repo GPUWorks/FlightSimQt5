@@ -12,5 +12,6 @@
         <file>img/gpsUP.png</file>
         <file>img/map.svg</file>
         <file>img/mapa.jpg</file>
+        <file>img/planeTopRed.png</file>
     </qresource>
 </RCC>

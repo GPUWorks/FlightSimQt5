@@ -134,7 +134,7 @@ void GUIPanel::initWidgets(){
 
     ui->widgetPFD->update();
 
-    *gps= new GPS();
+    gps= new GPS();
     gps->show();
 
     ui->AutoPilot->setVisible(false); // Etiqueta de "Piloto automatico" no es visible
@@ -162,6 +162,8 @@ void GUIPanel::ActualizarPFD(){
                 velocidadActual=velocidadActual - 4;
                 ui->widgetPFD->setAirspeed(velocidadActual);
             }
+            gps->setVelocidad(velocidadObjetivo);
+
         }
         if(altitudObjetivo != altitudActual){
             if ( (altitudActual < altitudObjetivo)){
@@ -182,6 +184,7 @@ void GUIPanel::ActualizarPFD(){
                 pitchActual=pitchActual - (pitchActual -pitchObjetivo)/20;
                 ui->widgetPFD->setPitch(pitchActual);
             }
+            gps->setPitch(pitchObjetivo);
         }
         if(rollObjetivo != rollActual){
             if ( (rollActual < rollObjetivo)){
@@ -192,11 +195,14 @@ void GUIPanel::ActualizarPFD(){
                 rollActual=rollActual - (rollActual -rollObjetivo)/20;
                 ui->widgetPFD->setRoll(rollActual);
             }
+
         }
         if(yawObjetivo != yawActual){
 
             yawActual=yawObjetivo;
             ui->widgetPFD->setHeading(yawActual);
+            gps->setYaw(yawActual);
+
 
         }
     }else{
@@ -344,7 +350,7 @@ void GUIPanel::readRequest()
 
                     extract_packet_command_param(frame,sizeof(velocidadObjetivo),&velocidadObjetivo);
                     qDebug() << "Comando SPEED";
-
+                    ui->speedSlider->setValue(velocidadObjetivo);
 
                 }
                     break;

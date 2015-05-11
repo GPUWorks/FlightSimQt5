@@ -2,6 +2,7 @@
 #define GPS_H
 
 #include <QWidget>
+#include <QPixmap>
 
 namespace Ui {
 class GPS;
@@ -19,10 +20,20 @@ public:
     void setPitch(float pitch);
 
 private:
+    QPixmap rotatePixmap(int angle);
+
+private slots:
+    void update();
+
+
+private:
     Ui::GPS *ui;
     float yaw;
+    float lastYaw;
     float velocidad;
     float pitch;
+    QPixmap Avion;
+    float x,y;
 
 };
 

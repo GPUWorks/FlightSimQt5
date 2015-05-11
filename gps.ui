@@ -60,8 +60,28 @@
     <pixmap resource="images.qrc">:/img/mapa.jpg</pixmap>
    </property>
   </widget>
+  <widget class="QLabel" name="avion">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>220</y>
+     <width>61</width>
+     <height>61</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="pixmap">
+    <pixmap resource="images.qrc">:/img/planeTopRed.png</pixmap>
+   </property>
+   <property name="scaledContents">
+    <bool>true</bool>
+   </property>
+  </widget>
   <zorder>mapa</zorder>
   <zorder>up</zorder>
+  <zorder>avion</zorder>
  </widget>
  <resources>
   <include location="images.qrc"/>

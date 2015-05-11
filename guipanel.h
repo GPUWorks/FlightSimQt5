@@ -9,6 +9,7 @@
 #include <qwt_analog_clock.h>
 #include <QTime>
 
+#include "gps.h"
 
 namespace Ui {
 class GUIPanel;
@@ -57,7 +58,8 @@ private:  // Variables privadas; excepto ui, las debe añadir el programador
     QTime flightTime;
     QTimer *autoPilot; // Para crear un Timer que controle el parpadeo del indicador de autopiloto habilitado
     int time;
-    GPS *gps;
+
+    GPS *gps ;
 
     float velocidadActual;
     float velocidadObjetivo;
